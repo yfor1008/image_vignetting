@@ -1,10 +1,10 @@
 function [devig] = devignetting(im)
-%devignetting - È¥Í¼Ïñ¹âÔÎ/°µ½Ç
+% devignetting - å»å›¾åƒå…‰æ™•/æš—è§’
 %
 % input:
-%   - im: h*w, grayÍ¼Ïñ
+%   - im: h*w, grayå›¾åƒ
 % output:
-%   - devig, h*w, ´¦ÀíºóÍ¼Ïñ
+%   - devig, h*w, å¤„ç†åå›¾åƒ
 %
 % docs:
 %   - Single-Image Vignetting Correction by Constrained Minimization of log-Intensity Entropy
@@ -15,11 +15,11 @@ im = double(im);
 cx = w / 2;
 cy = h / 2;
 
-% ËÑË÷×îÓÅ²ÎÊı
+% æœç´¢æœ€ä¼˜å‚æ•°
 A = 0; B = 0; C = 0;
 min_entropy = 1000000000000.0;
 step = 0.2;
-for a = -10:10 % A/B/C×îÓÅµÄ·¶Î§ÔÚ[-2,2]
+for a = -10:10 % A/B/Cæœ€ä¼˜çš„èŒƒå›´åœ¨[-2,2]
     for b = -10:10
         for c = -10:10
             temp_a = a * step;
@@ -38,7 +38,7 @@ for a = -10:10 % A/B/C×îÓÅµÄ·¶Î§ÔÚ[-2,2]
     end
 end
 
-% ½ÃÕı
+% çŸ«æ­£
 devig = zeros(h, w);
 dist_factor = 1 / (cx * cx + cy * cy);
 for y = 1:h
@@ -46,9 +46,9 @@ for y = 1:h
     for x = 1:w
         dist_x = (x - cx) * (x - cx);
         dist = dist_x + dist_y;
-        R2 = dist * dist_factor; % ¹«Ê½12, R2 = r^2
-        gain = 1 + A * R2 + B * R2^2 + C * R2^3; % ¹«Ê½11, gain=1+a*r^2+b*r^4+c*r^6
-        correction = round(gain * im(y,x)); % ½ÃÕıºóµÄÖµ
+        R2 = dist * dist_factor; % å…¬å¼12, R2 = r^2
+        gain = 1 + A * R2 + B * R2^2 + C * R2^3; % å…¬å¼11, gain=1+a*r^2+b*r^4+c*r^6
+        correction = round(gain * im(y,x)); % çŸ«æ­£åçš„å€¼
         devig(y, x) = correction;
     end
 end
@@ -57,17 +57,17 @@ devig = uint8(devig);
 end
 
 function [entropy] = calc_log_entropy(im, A, B, C, cx, cy)
-%calc_log_entropy - ¼ÆËãÍ¼Ïñ¶ÔÊıìØ
+%calc_log_entropy - è®¡ç®—å›¾åƒå¯¹æ•°ç†µ
 %
 % input:
-%   - im: h*w, grayÍ¼Ïñ
-%   - A: float, ²ÎÊı
-%   - B: float, ²ÎÊı
-%   - C: float, ²ÎÊı
-%   - cx: int, ÖĞĞÄ
-%   - cy: int, ÖĞĞÄ
+%   - im: h*w, grayå›¾åƒ
+%   - A: float, å‚æ•°
+%   - B: float, å‚æ•°
+%   - C: float, å‚æ•°
+%   - cx: int, ä¸­å¿ƒ
+%   - cy: int, ä¸­å¿ƒ
 % output:
-%   - entropy: float, ¶ÔÊıìØ
+%   - entropy: float, å¯¹æ•°ç†µ
 %
 % docs:
 %
@@ -83,33 +83,33 @@ for y = 1:h
     for x = 1:w
         dist_x = (x - cx) * (x - cx);
         dist = dist_x + dist_y;
-        R2 = dist * dist_factor; % ¹«Ê½12, R2 = r^2
-        gain = 1 + A * R2 + B * R2^2 + C * R2^3; % ¹«Ê½11, gain=1+a*r^2+b*r^4+c*r^6
-        correction = gain * im(y,x); % ½ÃÕıºóµÄÖµ
+        R2 = dist * dist_factor; % å…¬å¼12, R2 = r^2
+        gain = 1 + A * R2 + B * R2^2 + C * R2^3; % å…¬å¼11, gain=1+a*r^2+b*r^4+c*r^6
+        correction = gain * im(y,x); % çŸ«æ­£åçš„å€¼
 
         im_log(y,x) = correction;
     end
 end
-im_log = log_factor * log2(im_log + 1); % ¹«Ê½6
-im_log = max(im_log, 0); % ÏŞÖÆÔÚ[0, 255]
+im_log = log_factor * log2(im_log + 1); % å…¬å¼6
+im_log = max(im_log, 0); % é™åˆ¶åœ¨[0, 255]
 im_log = min(im_log, 255);
 
-% Ö±·½Í¼
+% ç›´æ–¹å›¾
 hist = zeros(256, 1);
 for y = 1:h
     for x = 1:w
         val = im_log(y,x) + 1;
         idx_d = floor(val);
         idx_u = ceil(val);
-        hist(idx_d) = hist(idx_d) + 1 + idx_d - val; % ¹«Ê½7
+        hist(idx_d) = hist(idx_d) + 1 + idx_d - val; % å…¬å¼7
         hist(idx_u) = hist(idx_u) + idx_u - val;
     end
 end
 
-% Æ½»¬²Ù×÷, °ë¾¶Îª4
+% å¹³æ»‘æ“ä½œ, åŠå¾„ä¸º4
 temp_hist = zeros(256 + 4*2, 1);
 temp_hist(5:256+4) = hist;
-temp_hist(1) = hist(5); % ¾µÏñÌî³ä
+temp_hist(1) = hist(5); % é•œåƒå¡«å……
 temp_hist(2) = hist(4);
 temp_hist(3) = hist(3);
 temp_hist(4) = hist(2);
@@ -118,7 +118,7 @@ temp_hist(262) = hist(254);
 temp_hist(263) = hist(253);
 temp_hist(264) = hist(252);
 for idx = 1:256
-    % ¹«Ê½8
+    % å…¬å¼8
     hist(idx) = temp_hist(idx) ...
                 + temp_hist(idx+1)*2 ...
                 + temp_hist(idx+2)*3 ...
@@ -131,7 +131,7 @@ for idx = 1:256
 end
 hist = hist / 25;
 
-% ¼ÆËãÍ¼ÏñìØ
+% è®¡ç®—å›¾åƒç†µ
 entropy = 0;
 sum_hist = sum(hist);
 for idx = 1:256
@@ -144,25 +144,25 @@ end
 end
 
 function [checked] = para_check(A, B, C)
-% para_check - ²ÎÊıĞ£ÑéÊÇ·ñºÏÀí, ¹«Ê½18
+% para_check - å‚æ•°æ ¡éªŒæ˜¯å¦åˆç†, å…¬å¼18
 %
 % input:
-%   - A: float, ²ÎÊı
-%   - B: float, ²ÎÊı
-%   - C: float, ²ÎÊı
+%   - A: float, å‚æ•°
+%   - B: float, å‚æ•°
+%   - C: float, å‚æ•°
 % output:
-%   - checked: bool, 1-²ÎÊıºÏÀí; 0-²ÎÊı²»ºÏÀí
+%   - checked: bool, 1-å‚æ•°åˆç†; 0-å‚æ•°ä¸åˆç†
 %
 % docs:
 %
 
-if (1 + A + B + C > 3) % ¹«Ê½11, r=1Ê±³öÏÖ×î´óµÄÁÁ¶Èµ÷Õû
+if (1 + A + B + C > 3) % å…¬å¼11, r=1æ—¶å‡ºç°æœ€å¤§çš„äº®åº¦è°ƒæ•´
     checked = false;
     return;
 end
 
 if C == 0
-    if A <= 0 || A + 2*B <= 0 % ¹«Ê½15, Èç¹ûC=0, µ±r=0Ê±, A>0, µ±r=1Ê±, A+2B>0
+    if A <= 0 || A + 2*B <= 0 % å…¬å¼15, å¦‚æœC=0, å½“r=0æ—¶, A>0, å½“r=1æ—¶, A+2B>0
         checked = false;
         return;
     end
@@ -171,7 +171,7 @@ else
     if C < 0
         if tmp >= 0
             tmp_q = sqrt(tmp);
-            q_minus = (-2 * B - tmp_q) / (6 * C); % ¹«Ê½17
+            q_minus = (-2 * B - tmp_q) / (6 * C); % å…¬å¼17
             q_plus  = (-2 * B + tmp_q) / (6 * C);
             if q_minus > 0 || q_plus < 1
                 checked = false;
